@@ -12,7 +12,7 @@ class GitDataProvider:
         self.current_commit = self.repo.commit(rev)
 
     def get_files_with_sizes(self):
-        blobs = self.__get_all_blobs()
+        blobs = self._get_all_blobs()
         blob_info = {blob.path: blob.size for blob in blobs}
         return pd.DataFrame.from_dict(blob_info,
                                       orient='index',
@@ -30,15 +30,15 @@ class GitDataProvider:
         data["change type"] = data["change type"].fillna("U")
         return data
 
-    def __get_all_blobs(self):
+    def _get_all_blobs(self):
         blobs = []
         tree = self.current_commit.tree
-        GitDataProvider.__collect_files_in_repository(tree, blobs)
+        GitDataProvider._collect_files_in_repository(tree, blobs)
         return blobs
 
     @staticmethod
-    def __collect_files_in_repository(tree, blobs):
+    def _collect_files_in_repository(tree, blobs):
         for entry in tree.blobs:
             blobs.append(entry)
         for subtree in tree.trees:
-            GitDataProvider.__collect_files_in_repository(subtree, blobs)
+            GitDataProvider._collect_files_in_repository(subtree, blobs)

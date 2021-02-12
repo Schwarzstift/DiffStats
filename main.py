@@ -17,7 +17,7 @@ def show_diff():
     data["identifier"] = data.index
     data["identifier"] = data["identifier"].apply(GroupGenerator.split_filename_from_path)
 
-    FileChangeView.updated_file_size_treemap_v2(data)
+    FileChangeView.updated_file_size_treemap(data)
 
 
 if __name__ == '__main__':

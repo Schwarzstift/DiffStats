@@ -12,7 +12,6 @@ class GitDataProvider:
         self.current_commit = self.repo.commit(rev)
 
     def get_files_with_sizes(self):
-        # Returns all file names of the current commit with their size in byte
         blobs = self.__get_all_blobs()
         blob_info = {blob.path: blob.size for blob in blobs}
         return pd.DataFrame.from_dict(blob_info,
@@ -20,14 +19,16 @@ class GitDataProvider:
                                       columns=['size'])
 
     def changes_since(self, rev: str):
-        # Returns a pandas data frame with FILENAME|CHANGED|NEW|DELETED
-        # which represents the changes between the current commit and the rev provided
         compared_commit = self.repo.commit(rev)
         diff = compared_commit.diff(self.current_commit)
         diff_info = {d.a_path: d.change_type for d in diff}
-        return pd.DataFrame.from_dict(diff_info,
+        data = pd.DataFrame.from_dict(diff_info,
                                       orient='index',
                                       columns=['change type'])
+        data = data.join(self.get_files_with_sizes(), how="outer")
+        data["size"] = data["size"].fillna(0)
+        data["change type"] = data["change type"].fillna("U")
+        return data
 
     def __get_all_blobs(self):
         blobs = []
@@ -41,6 +42,3 @@ class GitDataProvider:
             blobs.append(entry)
         for subtree in tree.trees:
             GitDataProvider.__collect_files_in_repository(subtree, blobs)
-
-
-

@@ -1,6 +1,6 @@
 from data_acquisition.GitDataProvider import GitDataProvider
 from visualization import FileChangeView
-
+from data_acquisition import GroupGenerator
 
 def show_file_size_in_repo():
     git_data_provider = GitDataProvider(".")
@@ -10,14 +10,14 @@ def show_file_size_in_repo():
 
 def show_diff():
     git_data_provider = GitDataProvider(".")
-    paths_and_sizes = git_data_provider.get_files_with_sizes()
-    changes = git_data_provider.changes_since("b44e0bd8")
+    data = git_data_provider.changes_since("b44e0bd8")
 
-    data = paths_and_sizes.join(changes, how="outer")
-    data["size"] = data["size"].fillna(0)
-    data["change type"] = data["change type"].fillna("U")
+    data["group"] = data.index
+    data["group"] = data["group"].apply(GroupGenerator.split_path_from_filename)
+    data["identifier"] = data.index
+    data["identifier"] = data["identifier"].apply(GroupGenerator.split_filename_from_path)
 
-    FileChangeView.updated_file_size_treemap(data)
+    FileChangeView.updated_file_size_treemap_v2(data)
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ class GitDataProvider:
     def get_files_with_sizes(self):
         # Returns all file names of the current commit with their size in byte
         blobs = self.__get_all_blobs()
-        blob_info = {blob.name: blob.size for blob in blobs}
+        blob_info = {blob.path: blob.size for blob in blobs}
         return pd.DataFrame.from_dict(blob_info,
                                       orient='index',
                                       columns=['size'])
@@ -22,7 +22,12 @@ class GitDataProvider:
     def changes_since(self, rev: str):
         # Returns a pandas data frame with FILENAME|CHANGED|NEW|DELETED
         # which represents the changes between the current commit and the rev provided
-        pass
+        compared_commit = self.repo.commit(rev)
+        diff = compared_commit.diff(self.current_commit)
+        diff_info = {d.a_path: d.change_type for d in diff}
+        return pd.DataFrame.from_dict(diff_info,
+                                      orient='index',
+                                      columns=['change type'])
 
     def __get_all_blobs(self):
         blobs = []
@@ -37,34 +42,5 @@ class GitDataProvider:
         for subtree in tree.trees:
             GitDataProvider.__collect_files_in_repository(subtree, blobs)
 
-    @staticmethod
-    def __compare_two_trees(tree_before, tree_after, changedFiles, newFiles):
-        for blob_after in tree_after.blobs:
-            if blob_after not in tree_before.blobs:  # otherwise it has not changed since then
-                # Either it is new, renamed or has changed
-                # TODO renamed files are considered currently as new files
-                if blob_after.path in [b.path for b in tree_before.blobs]:  # has changed?
-                    changedFiles.append(blob_after.path)  # same path but different hash -> changed
-                else:
-                    newFiles.append(blob_after.path)
-        for subtree_after in tree_after.trees:
-            if subtree_after not in tree_before.trees:  # otherwise it has not changed since then
-                # find corresponding tree
-                subtree_before = ""
-                for subtree in tree_before.trees:
-                    if subtree_after.path is subtree.path:
-                        subtree_before = subtree
-                        break
 
-                if subtree_before != "":
-                    GitDataProvider.__compare_two_trees(subtree_before, subtree_after, changedFiles, newFiles)
-                else:
-                    GitDataProvider.__collect_files_in_repository(subtree_after, newFiles)
 
-    def files_touched_between(self, ref_before: str, ref_after: str):
-        tree_before = self.repo.commit(ref_before).tree
-        tree_after = self.repo.commit(ref_after).tree
-        changed_files = []
-        new_files = []
-        GitDataProvider.__compare_two_trees(tree_before, tree_after, changed_files, new_files)
-        return (changed_files, new_files)

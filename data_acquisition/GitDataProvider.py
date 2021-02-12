@@ -1,4 +1,5 @@
 from git import Repo
+import pandas as pd
 
 
 class GitDataProvider:
@@ -10,16 +11,24 @@ class GitDataProvider:
     def set_commit(self, rev: str):
         self.current_commit = self.repo.commit(rev)
 
-    def get_all_blobs(self):
+    def get_files_with_sizes(self):
+        # Returns all file names of the current commit with their size in byte
+        blobs = self.__get_all_blobs()
+        blob_info = {blob.name: blob.size for blob in blobs}
+        return pd.DataFrame.from_dict(blob_info,
+                                      orient='index',
+                                      columns=['size'])
+
+    def changes_since(self, rev: str):
+        # Returns a pandas data frame with FILENAME|CHANGED|NEW|DELETED
+        # which represents the changes between the current commit and the rev provided
+        pass
+
+    def __get_all_blobs(self):
         blobs = []
         tree = self.current_commit.tree
         GitDataProvider.__collect_files_in_repository(tree, blobs)
         return blobs
-
-    def get_files_with_sizes(self):
-        blobs = self.get_all_blobs()
-        return {blob.name: blob.size for blob in blobs}
-
 
     @staticmethod
     def __collect_files_in_repository(tree, blobs):

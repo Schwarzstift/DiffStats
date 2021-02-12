@@ -1,8 +1,5 @@
-# statistics
+# Git statistics
 
-This project aims as a playground for several project specific statistics I'm interested in.
+This project serves as a playground for me to get more experience with the GitPython library.
 
-
-
-# Data acquisition
-* List of files in a git repository
+Currently, it can display the changes between two different git commits on file and directory basis.

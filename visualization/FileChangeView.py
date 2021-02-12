@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import squarify
-import pandas as pd
-
 
 
 def file_size_treemap(file_to_line_mapping):

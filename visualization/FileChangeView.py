@@ -18,24 +18,11 @@ def file_size_treemap(file_to_line_mapping: pd.DataFrame):
 
 def updated_file_size_treemap(data: pd.DataFrame):
     filtered_mapping = data[data['size'] > 0]
-    filtered_mapping = filtered_mapping.replace({"change type": colors})
-
-    squarify.plot(sizes=filtered_mapping['size'],
-                  label=filtered_mapping.index,
-                  alpha=0.6,
-                  color=filtered_mapping['change type'])
-    plt.axis('off')
-    plt.show()
-
-
-def updated_file_size_treemap_v2(data: pd.DataFrame):
-    filtered_mapping = data[data['size'] > 0]
-    filtered_mapping = filtered_mapping.replace({"change type": colors})
 
     fig = px.treemap(filtered_mapping,
                      path=['group', 'identifier'],
                      values='size',
-                     color='change type'
+                     color='change type',
+                     color_discrete_map=colors
                      )
     fig.show()
-
